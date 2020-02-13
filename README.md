@@ -1,2 +1,2 @@
 # pep-talk
-Performance event profiles (pep) for many languages! Count me in.
+Performance event profiles (pep) speak many languages! Count me in.
