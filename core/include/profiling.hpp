@@ -13,7 +13,7 @@ namespace peptalk::profiling {
 
     bool
     Init(const std::string &overflow_event, int overflow_threshold, const std::vector<std::string> &measured_events,
-         bool include_instruction_address, const std::string &profiling_output_path,
+         bool include_instruction_address, const std::string &profiling_result_file,
          const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning);
 
     bool Start(const std::string &trace_header,
