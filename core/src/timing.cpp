@@ -2,7 +2,7 @@
 // Created by quepas on 13/04/2020.
 //
 
-#include <filesystem>
+//#include <filesystem>
 #include "timing.hpp"
 
 using std::string;
@@ -15,7 +15,7 @@ namespace peptalk::timing {
     struct TimingInfo {
         std::string result_file;
         FILE* result_fd = nullptr;
-        GenericTimer* timer = nullptr;
+        GenericTimer* timer = new SystemClockTimer();
         std::vector<std::string> parameters;
         std::vector<std::string> to_save;
         std::vector<double> time_measurements;
@@ -25,7 +25,8 @@ namespace peptalk::timing {
         global_timing_info.result_file = result_file;
         global_timing_info.time_measurements.reserve(num_measurements);
         global_timing_info.to_save.reserve(num_measurements);
-        auto result_file_exists = std::filesystem::exists(global_timing_info.result_file);
+//        auto result_file_exists = std::filesystem::exists(global_timing_info.result_file);
+        auto result_file_exists = true;
         global_timing_info.result_fd = fopen(global_timing_info.result_file.c_str(), "a");
         if (!result_file_exists) {
             string header;

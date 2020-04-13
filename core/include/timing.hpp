@@ -5,8 +5,10 @@
 #ifndef PEP_TALK_TIMING_HPP
 #define PEP_TALK_TIMING_HPP
 
-#include <string>
+#include <chrono>
 #include <functional>
+#include <string>
+#include <vector>
 
 typedef const std::function<void(const std::string &, const std::string &)> error_callback_type;
 
@@ -22,7 +24,7 @@ namespace peptalk::timing {
 
     class GenericTimer {
     public:
-        virtual ~GenericTimer() = 0;
+        virtual ~GenericTimer() = default;
         virtual void reset() = 0;
         virtual double elapsed() const = 0;
     };
@@ -31,9 +33,9 @@ namespace peptalk::timing {
     {
     public:
         SystemClockTimer() : beg_(clock_::now()) {}
-        virtual ~SystemClockTimer() {}
-        void reset() { beg_ = clock_::now(); }
-        double elapsed() const {
+        ~SystemClockTimer() override = default;
+        void reset() override { beg_ = clock_::now(); }
+        double elapsed() const override {
             return std::chrono::duration_cast<second_>
                     (clock_::now() - beg_).count(); }
 
