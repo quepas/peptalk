@@ -35,5 +35,3 @@ matlab_add_mex( NAME peptalk_timing_init SRC src/peptalk_timing_init.cpp LINK_TO
 matlab_add_mex( NAME peptalk_timing_start SRC src/peptalk_timing_start.cpp LINK_TO peptalk_core )
 matlab_add_mex( NAME peptalk_timing_stop SRC src/peptalk_timing_stop.cpp LINK_TO peptalk_core )
 matlab_add_mex( NAME peptalk_timing_close SRC src/peptalk_timing_close.cpp LINK_TO peptalk_core )
-
-
