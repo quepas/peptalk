@@ -5,7 +5,7 @@ project( peptalk_core VERSION 1.0 )
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_BUILD_TYPE Release )
 
-add_library( peptalk_core SHARED src/profiling.cpp src/timing.cpp )
+add_library( peptalk_core SHARED src/counting.cpp src/profiling.cpp src/timing.cpp )
 target_include_directories( peptalk_core PUBLIC include/ )
 target_link_libraries( peptalk_core papi stdc++fs )
 set_property( TARGET peptalk_core PROPERTY POSITION_INDEPENDENT_CODE ON )
