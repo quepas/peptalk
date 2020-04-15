@@ -25,7 +25,7 @@ namespace peptalk::timing {
         global_timing_info.result_file = result_file;
         global_timing_info.time_measurements.reserve(num_measurements);
         global_timing_info.to_save.reserve(num_measurements);
-        auto result_file_exists = std::experimental::filesystem::exists(global_timing_info.result_file);
+        auto result_file_exists = std::experimental::filesystem::exists(result_file);
         global_timing_info.result_fd = fopen(global_timing_info.result_file.c_str(), "a");
         if (!result_file_exists) {
             string header;
@@ -63,6 +63,7 @@ namespace peptalk::timing {
                     + "\n";
             fputs(line_to_save.c_str(), global_timing_info.result_fd);
         }
+        fclose(global_timing_info.result_fd);
         delete global_timing_info.timer;
     }
 
