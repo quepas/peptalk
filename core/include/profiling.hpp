@@ -11,15 +11,18 @@
 
 namespace peptalk::profiling {
 
+    typedef const std::function<void(const std::string &, const std::string &)> error_callback_type;
+
     bool
-    Init(const std::string &overflow_event, int overflow_threshold, const std::vector<std::string> &measured_events,
-         bool include_instruction_address, const std::string &profiling_result_file,
-         const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning);
+    Init(const std::string &profiling_result_file, const std::string &overflow_event, int overflow_threshold,
+         const std::vector<std::string> &measured_events, bool include_instruction_address,
+         error_callback_type &OnErrorOrWarning);
 
-    bool Start(const std::string &trace_header,
-               const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning);
+    bool Start(const std::string &trace_header, error_callback_type &OnErrorOrWarning);
 
-    bool Stop(const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning);
+    bool Stop(error_callback_type &OnErrorOrWarning);
+
+    bool Close(error_callback_type &OnErrorOrWarning);
 
 }
 

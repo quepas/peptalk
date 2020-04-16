@@ -19,6 +19,7 @@ namespace peptalk::profiling {
     struct ProfilingInfo {
         int event_set = PAPI_NULL;
         std::vector<std::string> performance_events;
+        std::string performance_events_names;
         int num_events = 0;
         bool include_instruction_address = false;
         std::string profiling_result_file;
@@ -42,14 +43,15 @@ namespace peptalk::profiling {
             }
             values_str.append("\n");
             fputs(values_str.c_str(), global_profiling_info.pep_fd);
+            fflush(global_profiling_info.pep_fd);
         } else {
             cerr << "Failed at reading overflow values. Error: " << PAPI_strerror(retval) << std::endl;
         }
     }
 
     bool
-    Init(const std::string &overflow_event, int overflow_threshold, const std::vector<std::string> &measured_events,
-         bool include_instruction_address, const std::string &profiling_result_file,
+    Init(const std::string &profiling_result_file, const std::string &overflow_event, int overflow_threshold,
+         const std::vector<std::string> &measured_events, bool include_instruction_address,
          const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning) {
 
         // Overflow event is first
@@ -93,6 +95,17 @@ namespace peptalk::profiling {
             OnErrorOrWarning("Failed to start the profiling.", PAPI_strerror(retval));
             return false;
         }
+
+        for (size_t idx = 0; idx < global_profiling_info.num_events; ++idx) {
+            global_profiling_info.performance_events_names += global_profiling_info.performance_events[idx];
+            if (idx + 1 < global_profiling_info.num_events) {
+                global_profiling_info.performance_events_names += ",";
+            }
+        }
+        if (global_profiling_info.include_instruction_address) {
+            global_profiling_info.performance_events_names += ",address";
+        }
+
         global_profiling_info.pep_fd = fopen(global_profiling_info.profiling_result_file.c_str(), "a");
         return true;
     }
@@ -100,7 +113,7 @@ namespace peptalk::profiling {
     bool Start(const std::string &trace_header,
                const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning) {
         fprintf(global_profiling_info.pep_fd, "@trace_start:%s\n", trace_header.c_str());
-        fprintf(global_profiling_info.pep_fd, "@perf_events:%s\n", "perf_events");
+        fprintf(global_profiling_info.pep_fd, "@perf_events:%s\n", global_profiling_info.performance_events_names.c_str());
 
         int retval;
         if ((retval = PAPI_start(global_profiling_info.event_set)) != PAPI_OK) {
@@ -123,8 +136,21 @@ namespace peptalk::profiling {
             return false;
         }
         fputs("@trace_end\n", global_profiling_info.pep_fd);
-        fflush(global_profiling_info.pep_fd);
         return true;
+    }
+
+    bool Close(error_callback_type &OnErrorOrWarning) {
+        int retval;
+        if ((retval = PAPI_cleanup_eventset(global_profiling_info.event_set)) != PAPI_OK) {
+            OnErrorOrWarning("Failed to cleanup the event set.", PAPI_strerror(retval));
+            return false;
+        }
+        if ((retval = PAPI_destroy_eventset(&global_profiling_info.event_set)) != PAPI_OK) {
+            OnErrorOrWarning("Failed to destroy the event set.", PAPI_strerror(retval));
+            return false;
+        }
+        PAPI_shutdown();
+        fclose(global_profiling_info.pep_fd);
     }
 
 }

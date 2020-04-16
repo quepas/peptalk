@@ -31,10 +31,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
 
     peptalk::profiling::Init(
             mxArrayToString(prhs[0]),
-            (int) mxGetScalar(prhs[1]),
-            UnpackPerformanceEvents(prhs[2]),
-            mxIsLogicalScalarTrue(prhs[3]),
-            mxArrayToString(prhs[4]),
+            mxArrayToString(prhs[1]),
+            (int) mxGetScalar(prhs[2]),
+            UnpackPerformanceEvents(prhs[3]),
+            mxIsLogicalScalarTrue(prhs[4]),
             OnErrorOrWarning
     );
 }
