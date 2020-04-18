@@ -71,7 +71,7 @@ namespace peptalk::io {
     }
 
     void PEPReader::CheckProfileStart() {
-        std::string profile_start;
+        string profile_start;
         profile_start.resize(PEP_START.size());
         in_file.read((char *) profile_start.c_str(), PEP_START.size());
         if (profile_start != PEP_START) {
@@ -80,7 +80,7 @@ namespace peptalk::io {
     }
 
     void PEPReader::CheckProfileEnd() {
-        std::string profile_end;
+        string profile_end;
         profile_end.resize(PEP_END.size());
         in_file.read((char *) profile_end.c_str(), PEP_END.size());
         if (profile_end != PEP_END) {
@@ -88,23 +88,23 @@ namespace peptalk::io {
         }
     }
 
-    std::string PEPReader::ReadHeader() {
+    string PEPReader::ReadHeader() {
         unsigned short int header_size;
         in_file.read((char *) &header_size, sizeof(unsigned short int));
-        std::string header;
+        string header;
         header.resize(header_size);
         in_file.read((char *) header.c_str(), header_size);
         return header;
     }
 
-    void PEPReader::ReadPerformanceEvents(std::vector<std::string>& performance_events) {
+    void PEPReader::ReadPerformanceEvents(vector<string>& performance_events) {
         unsigned char num_perf_events;
         in_file.read((char *) &num_perf_events, sizeof(unsigned char));
 
         for (size_t idx = 0; idx < num_perf_events; ++idx) {
             unsigned char perf_event_size;
             in_file.read((char *) &perf_event_size, sizeof(unsigned char));
-            std::string perf_event;
+            string perf_event;
             perf_event.resize(perf_event_size);
             in_file.read((char *) perf_event.c_str(), perf_event_size);
             performance_events.push_back(perf_event);
@@ -117,7 +117,7 @@ namespace peptalk::io {
         return num_measurements;
     }
 
-    void PEPReader::ReadMeasurements(std::vector<long long int>& measurements, unsigned int num_measurements) {
+    void PEPReader::ReadMeasurements(vector<long long int>& measurements, unsigned int num_measurements) {
         measurements.resize(num_measurements);
         in_file.read((char *) measurements.data(), num_measurements * sizeof(long long int));
     }
