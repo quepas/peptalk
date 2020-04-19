@@ -22,7 +22,7 @@ namespace peptalk::io {
         return in_file_stream.is_open();
     }
 
-    bool PEPReader::ReadProfiles(function<void(
+    bool PEPReader::ReadProfiles(function<bool(
             const string& header,
             const vector<string>& performance_events,
             const vector<long long int>& measurements)> onNewProfile) {
@@ -39,7 +39,9 @@ namespace peptalk::io {
                 vector<long long int> measurements;
                 ReadMeasurements(measurements, num_measurements);
                 CheckProfileEnd();
-                onNewProfile(header, performance_events, measurements);
+                if (!onNewProfile(header, performance_events, measurements)) {
+                    return false;
+                }
             }
         } catch (InvalidFormat &ex) {
             cerr << "Ill-formatted file: " << ex.what() << endl;
@@ -120,6 +122,10 @@ namespace peptalk::io {
     void PEPReader::ReadMeasurements(vector<long long int>& measurements, unsigned int num_measurements) {
         measurements.resize(num_measurements);
         in_file_stream.read((char *) measurements.data(), num_measurements * sizeof(long long int));
+    }
+
+    void PEPReader::Close() {
+        in_file_stream.close();
     }
 
 }
