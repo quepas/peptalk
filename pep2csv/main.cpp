@@ -48,20 +48,20 @@ int main(int argc, char* argv[]) {
     } else {
         csv_header = argv[3];
     }
-    auto csv_columns = SplitBy(csv_header, CSV_DELIMITER);
+    auto csv_column_names = SplitBy(csv_header, CSV_DELIMITER);
 
     if (!csv_header.empty()) {
         csv_header += CSV_DELIMITER;
     }
     csv_file << csv_header << "metrics,time,value" << endl;
 
-    if (!pep_reader.ReadProfiles([&csv_file, &csv_columns](auto header, auto perf_events, auto measurements) {
+    if (!pep_reader.ReadProfiles([&csv_file, &csv_column_names](auto header, auto perf_events, auto measurements) {
         auto num_perf_events = perf_events.size();
         auto column_values = SplitBy(header, CSV_DELIMITER);
-        if (column_values.size() != csv_columns.size()) {
+        if (column_values.size() != csv_column_names.size()) {
             cerr << "Profile header has different number of columns than excepted "
                  << " (given=" << column_values.size()
-                 << "; expected=" << csv_columns.size() << ")" << endl;
+                 << "; expected=" << csv_column_names.size() << ")" << endl;
             return false;
         }
         long long int current_time;
