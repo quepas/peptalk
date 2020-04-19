@@ -27,7 +27,7 @@ namespace peptalk::io {
         void FinishProfile();
 
     private:
-        std::ofstream out_file;
+        std::fstream file_stream;
         unsigned short int num_profiles = 0;
         unsigned int num_measurements = 0;
 

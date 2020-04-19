@@ -40,7 +40,7 @@ public:
     unsigned int getPepFormatVersion() const;
 
 private:
-    std::ifstream in_file;
+    std::ifstream in_file_stream;
     unsigned short int num_profiles = 0;
     unsigned int pep_format_version = 0;
 
