@@ -80,6 +80,11 @@ namespace peptalk::io {
         file_stream.write((char *) values, sizeof(long long int) * num);
     }
 
+    void PEPWriter::WriteMeasurements(std::vector<long long int> values) {
+        num_measurements += values.size();
+        file_stream.write((char*) values.data(), sizeof(long long int) * values.size());
+    }
+
     void PEPWriter::WriteAddress(long long int address) {
         num_measurements++;
         file_stream.write((char *) &address, sizeof(long long int));

@@ -12,7 +12,7 @@ using std::to_string;
 
 namespace peptalk::counting {
 
-    const char delimeter = ',';
+    const char DELIMITER = ',';
 
     struct ProfilingInfo {
         int event_set = PAPI_NULL;
@@ -66,7 +66,7 @@ namespace peptalk::counting {
             string header;
             for (auto &name : parameters_names) {
                 header += name;
-                header += delimeter;
+                header += DELIMITER;
             }
             header += "metrics,value\n";
             fputs(header.c_str(), global_counting_info.result_fd);
@@ -104,7 +104,7 @@ namespace peptalk::counting {
         auto parameters = global_counting_info.parameters;
         for (const auto &parameter : parameters) {
             line += parameter;
-            line += delimeter;
+            line += DELIMITER;
         }
         global_counting_info.to_save.push_back(line);
         return true;

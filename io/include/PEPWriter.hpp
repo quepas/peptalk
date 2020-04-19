@@ -22,6 +22,8 @@ namespace peptalk::io {
 
         void WriteMeasurements(long long int *values, size_t num);
 
+        void WriteMeasurements(std::vector<long long int> values);
+
         void WriteAddress(long long int address);
 
         void FinishProfile();
