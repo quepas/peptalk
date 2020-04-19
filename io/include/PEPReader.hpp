@@ -30,7 +30,9 @@ public:
 
     bool Open(const std::string &file_name);
 
-    bool ReadProfiles(std::function<void(
+    void Close();
+
+    bool ReadProfiles(std::function<bool(
             const std::string& header,
             const std::vector<std::string>& performance_events,
             const std::vector<long long int>& measurements)> onNewProfile);

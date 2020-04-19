@@ -7,5 +7,6 @@ set( CMAKE_BUILD_TYPE Release )
 
 add_subdirectory( io )
 add_subdirectory( core )
+add_subdirectory( pep2csv )
 set( Matlab_ROOT_DIR /usr/local/MATLAB/R2018b )
 add_subdirectory( matlab )
