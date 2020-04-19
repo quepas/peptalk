@@ -9,7 +9,8 @@ using namespace std;
 using peptalk::io::PEPReader;
 
 const char CSV_DELIMITER = ',';
-const string CSV_DEFAULT_HEADER = "environment,benchmark,process";
+const char* CSV_DEFAULT_HEADER = "environment,benchmark,process";
+const char* INSTRUCTION_ADDRESS_NAME = "INST_ADDRESS";
 
 vector<string> SplitBy(const string& str, char delimiter);
 void PrintUsage();
@@ -57,6 +58,10 @@ int main(int argc, char* argv[]) {
 
     if (!pep_reader.ReadProfiles([&csv_file, &csv_column_names](auto header, auto perf_events, auto measurements) {
         auto num_perf_events = perf_events.size();
+        long long int previous_values[num_perf_events];
+        for (int idx = 0; idx < num_perf_events; ++idx) {
+            previous_values[idx] = 0;
+        }
         auto column_values = SplitBy(header, CSV_DELIMITER);
         if (column_values.size() != csv_column_names.size()) {
             cerr << "Profile header has different number of columns than excepted "
@@ -67,15 +72,22 @@ int main(int argc, char* argv[]) {
         long long int current_time;
         for (size_t idx = 0; idx < measurements.size(); ++idx) {
             auto pe_idx = idx % num_perf_events;
+            auto measurement = measurements[idx];
             if (pe_idx == 0) {
-                current_time = measurements[idx];
+                current_time = measurement;
             } else {
                 if (!header.empty()) {
                     csv_file << header << CSV_DELIMITER;
                 }
+                auto final_measurement = measurement;
+                // Compute difference of performance events!
+                if (perf_events[pe_idx] != INSTRUCTION_ADDRESS_NAME) {
+                    final_measurement = measurement - previous_values[pe_idx];
+                    previous_values[pe_idx] = measurement;
+                }
                 csv_file << perf_events[pe_idx] << CSV_DELIMITER
                          << current_time << CSV_DELIMITER
-                         << measurements[idx] << endl;
+                         << final_measurement << endl;
             }
         }
         return true;
