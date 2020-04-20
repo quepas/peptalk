@@ -23,7 +23,6 @@ namespace peptalk::profiling {
         int event_set = PAPI_NULL;
         std::vector<std::string> performance_events;
         int overflow_threshold;
-        unsigned long int trace_num_measurements;
         int num_events = 0;
         bool include_instruction_address = false;
         io::PEPWriter pep_writer;
@@ -41,7 +40,6 @@ namespace peptalk::profiling {
         int retval;
         if ((retval = PAPI_read(global_profiling_info.event_set, counter_values)) == PAPI_OK) {
             global_profiling_info.pep_writer.WriteMeasurements(counter_values, num_counters);
-            global_profiling_info.trace_num_measurements += num_counters;
         } else {
             cerr << "Failed at reading overflow values. Error: " << PAPI_strerror(retval) << std::endl;
         }
@@ -99,7 +97,6 @@ namespace peptalk::profiling {
 
     bool Start(const std::string &trace_header,
                const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning) {
-        global_profiling_info.trace_num_measurements = 0;
         auto performance_event_names = global_profiling_info.performance_events;
         if (global_profiling_info.include_instruction_address) {
             performance_event_names.emplace_back(INSTRUCTION_ADDRESS_NAME);
