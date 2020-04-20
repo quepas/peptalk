@@ -22,10 +22,12 @@ namespace peptalk::profiling {
     struct ProfilingInfo {
         int event_set = PAPI_NULL;
         std::vector<std::string> performance_events;
+        int overflow_threshold;
         unsigned long int trace_num_measurements;
         int num_events = 0;
         bool include_instruction_address = false;
         io::PEPWriter pep_writer;
+        int* codes;
     } global_profiling_info;
 
     void ReadMeasurements(void *address, bool last_measurement = false) {
@@ -55,6 +57,7 @@ namespace peptalk::profiling {
          const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning) {
 
         // Overflow event is first
+        global_profiling_info.overflow_threshold = overflow_threshold;
         global_profiling_info.performance_events.push_back(overflow_event);
         global_profiling_info.performance_events.insert(global_profiling_info.performance_events.end(),
                                                         measured_events.begin(), measured_events.end());
@@ -76,22 +79,17 @@ namespace peptalk::profiling {
             return false;
         }
 
-        int codes[global_profiling_info.num_events];
+        global_profiling_info.codes = new int[global_profiling_info.num_events];
         for (size_t idx = 0; idx < global_profiling_info.num_events; ++idx) {
             auto event_name = global_profiling_info.performance_events[idx];
-            if ((PAPI_event_name_to_code(event_name.c_str(), &codes[idx])) != PAPI_OK) {
+            if ((PAPI_event_name_to_code(event_name.c_str(), &global_profiling_info.codes[idx])) != PAPI_OK) {
                 OnErrorOrWarning("Failed to retrieve code for event: " + event_name, PAPI_strerror(retval));
                 return false;
             }
         }
-        if ((retval = PAPI_add_events(global_profiling_info.event_set, codes, global_profiling_info.num_events)) !=
+        if ((retval = PAPI_add_events(global_profiling_info.event_set, global_profiling_info.codes, global_profiling_info.num_events)) !=
             PAPI_OK) {
             OnErrorOrWarning("Failed to add performance events to the event set.", PAPI_strerror(retval));
-            return false;
-        }
-        if ((retval = PAPI_overflow(global_profiling_info.event_set, codes[0],
-                                    overflow_threshold, 0, OverflowCallback)) != PAPI_OK) {
-            OnErrorOrWarning("Failed to start the profiling.", PAPI_strerror(retval));
             return false;
         }
 
@@ -109,6 +107,11 @@ namespace peptalk::profiling {
         global_profiling_info.pep_writer.StartProfile(trace_header, performance_event_names);
 
         int retval;
+        if ((retval = PAPI_overflow(global_profiling_info.event_set, global_profiling_info.codes[0],
+                                    global_profiling_info.overflow_threshold, 0, OverflowCallback)) != PAPI_OK) {
+            OnErrorOrWarning("Failed to start the profiling.", PAPI_strerror(retval));
+            return false;
+        }
         if ((retval = PAPI_start(global_profiling_info.event_set)) != PAPI_OK) {
             OnErrorOrWarning("Failed to start the profiling.", PAPI_strerror(retval));
             return false;
@@ -121,7 +124,7 @@ namespace peptalk::profiling {
         int retval;
 
         if ((retval = PAPI_stop(global_profiling_info.event_set, values)) != PAPI_OK) {
-            OnErrorOrWarning("Failed to start the profiling.", PAPI_strerror(retval));
+            OnErrorOrWarning("Failed to stop the profiling.", PAPI_strerror(retval));
             return false;
         }
         // Read counters for the very last time
@@ -129,6 +132,12 @@ namespace peptalk::profiling {
 
         if ((retval = PAPI_reset(global_profiling_info.event_set)) != PAPI_OK) {
             OnErrorOrWarning("Failed to reset the counters.", PAPI_strerror(retval));
+            return false;
+        }
+        // Detach the overflow callback and reset the overflow sampling
+        if ((retval = PAPI_overflow(global_profiling_info.event_set, global_profiling_info.codes[0],
+                                    0, 0, OverflowCallback)) != PAPI_OK) {
+            OnErrorOrWarning("Failed to reset the overflow profiling.", PAPI_strerror(retval));
             return false;
         }
         global_profiling_info.pep_writer.FinishProfile();
@@ -147,6 +156,7 @@ namespace peptalk::profiling {
         }
         PAPI_shutdown();
         global_profiling_info.pep_writer.Close();
+        delete[] global_profiling_info.codes;
         return true;
     }
 
