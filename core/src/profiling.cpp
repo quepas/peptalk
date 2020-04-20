@@ -29,19 +29,17 @@ namespace peptalk::profiling {
     } global_profiling_info;
 
     void ReadMeasurements(void *address, bool last_measurement = false) {
-        auto num_counters = global_profiling_info.num_events;
         auto has_address = global_profiling_info.include_instruction_address && !last_measurement;
+        auto num_counters = global_profiling_info.num_events + (has_address ? 1 : 0);
+
         long long int counter_values[num_counters];
+        if (has_address) {
+            counter_values[num_counters] = reinterpret_cast<std::intptr_t>(address);
+        }
         int retval;
         if ((retval = PAPI_read(global_profiling_info.event_set, counter_values)) == PAPI_OK) {
-            vector<long long int> sampled_measurements;
-            sampled_measurements.reserve(num_counters + (has_address ? 1 : 0));
-            sampled_measurements.insert(sampled_measurements.begin(), counter_values, counter_values + num_counters);
-            if (has_address) {
-                sampled_measurements.push_back(reinterpret_cast<std::intptr_t>(address));
-            }
-            global_profiling_info.pep_writer.WriteMeasurements(sampled_measurements);
-            global_profiling_info.trace_num_measurements += sampled_measurements.size();
+            global_profiling_info.pep_writer.WriteMeasurements(counter_values, num_counters);
+            global_profiling_info.trace_num_measurements += num_counters;
         } else {
             cerr << "Failed at reading overflow values. Error: " << PAPI_strerror(retval) << std::endl;
         }
