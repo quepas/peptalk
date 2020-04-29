@@ -1,0 +1,14 @@
+{
+  "name": "pep-talk-node",
+  "version": "0.0.1",
+  "description": "pep-talk for the Node.js",
+  "private": true,
+  "dependencies": {
+    "cmake-js": "^6.1.0",
+    "node-addon-api": "^2.0.0"
+  },
+  "scripts": {
+    "install": "cmake-js build",
+    "test": "node test.js"
+  }
+}
