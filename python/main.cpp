@@ -116,13 +116,13 @@ PYBIND11_MODULE(peptalk, m) {
         Initialise timing module
     )pbdoc");
     m.def("timing_start", &TimingStart, R"pbdoc(
-        Initialise timing module
+        Start timing
     )pbdoc");
     m.def("timing_stop", &TimingStop, R"pbdoc(
-        Initialise timing module
+        Stop timing
     )pbdoc");
     m.def("timing_close", &TimingClose, R"pbdoc(
-        Initialise timing module
+        Close timing module
     )pbdoc");
     /*
      * Counting
@@ -131,13 +131,13 @@ PYBIND11_MODULE(peptalk, m) {
         Initialise counting module
     )pbdoc");
     m.def("counting_start", &CountingStart, R"pbdoc(
-        Initialise counting module
+        Start counting
     )pbdoc");
     m.def("counting_stop", &CountingStop, R"pbdoc(
-        Initialise counting module
+        Stop counting
     )pbdoc");
     m.def("counting_close", &CountingClose, R"pbdoc(
-        Initialise counting module
+        Close counting module
     )pbdoc");
     /*
      * Profiling
@@ -146,13 +146,13 @@ PYBIND11_MODULE(peptalk, m) {
         Initialise profiling module
     )pbdoc");
     m.def("profiling_start", &ProfilingStart, R"pbdoc(
-        Initialise profiling module
+        Start profiling
     )pbdoc");
     m.def("profiling_stop", &ProfilingStop, R"pbdoc(
-        Initialise profiling module
+        Stop profiling
     )pbdoc");
     m.def("profiling_close", &ProfilingClose, R"pbdoc(
-        Initialise profiling module
+        Close profiling module
     )pbdoc");
     m.attr("__version__") = "1.0";
 }
