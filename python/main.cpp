@@ -11,7 +11,7 @@ using std::runtime_error;
 using std::string;
 using std::vector;
 
-void OnErrorOrWarning(string peptalk_msg, string papi_msg) {
+void OnErrorOrWarning(const string& peptalk_msg, const string& papi_msg) {
     throw runtime_error(peptalk_msg + ": " + papi_msg);
 }
 
