@@ -1,9 +1,7 @@
-//
-// Created by quepas on 17/04/2020.
-//
-
 #ifndef PEP_TALK_PEPREADER_HPP
 #define PEP_TALK_PEPREADER_HPP
+
+#include "PEPFormat.hpp"
 
 #include <exception>
 #include <fstream>
@@ -16,51 +14,37 @@ namespace peptalk::io {
 class PEPReader {
 public:
 
-    class InvalidFormat : public std::exception {
-    public:
-        explicit InvalidFormat(const std::string &msg) : msg(msg) {}
-
-        const char *what() const noexcept override {
-            return msg.c_str();
-        }
-
-    private:
-        const std::string &msg;
-    };
-
     bool Open(const std::string &file_name);
 
     void Close();
 
-    bool ReadProfiles(std::function<bool(
-            const std::string& header,
-            const std::vector<std::string>& performance_events,
-            const std::vector<long long int>& measurements)> onNewProfile);
+    bool ReadProfiles(const std::function<bool(
+            const ProfileHeader& header,
+            const std::vector<Observation>& observations)>& on_new_profile);
 
-    unsigned short GetNumProfiles() const;
+    uint16_t GetNumProfiles() const;
 
-    unsigned int getPepFormatVersion() const;
+    uint16_t GetPepFormatVersion() const;
+
+    bool GetHasInstructionAddressFlag() const;
 
 private:
     std::ifstream in_file_stream;
-    unsigned short int num_profiles = 0;
-    unsigned int pep_format_version = 0;
+    uint16_t num_profiles = 0;
+    uint16_t pep_format_version = 0;
+    bool has_instruction_address = false;
 
-    void CheckMagicNumbers();
+    void ReadFileHeader();
 
-    void ReadNumProfiles();
+    void ReadProfileStart();
 
-    void CheckProfileStart();
+    void ReadProfileEnd();
 
-    void CheckProfileEnd();
+    void ReadProfileHeader(ProfileHeader& profile_header);
 
-    std::string ReadHeader();
+    uint32_t ReadNumObservations();
 
-    void ReadPerformanceEvents(std::vector<std::string>& performance_events);
-
-    unsigned int ReadNumMeasurements();
-
-    void ReadMeasurements(std::vector<long long int>& measurements, unsigned int num_measurements);
+    void ReadObservation(Observation& observation, size_t num_performance_events);
 
 };
 
