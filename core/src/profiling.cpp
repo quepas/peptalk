@@ -17,12 +17,10 @@ using std::vector;
 
 namespace peptalk::profiling {
 
-    const string INSTRUCTION_ADDRESS_NAME = "INST_ADDRESS";
-
     struct ProfilingInfo {
         int event_set = PAPI_NULL;
         std::vector<std::string> event_names;
-        int* event_codes;
+        std::vector<int> event_codes;
         int overflow_threshold;
         int num_events = 0;
         bool has_inst_address = false;
@@ -30,16 +28,16 @@ namespace peptalk::profiling {
     } global_profiling_info;
 
     void OverflowCallback(int event_set, void *address, long long overflow_vector, void *context) {
-        auto num_counters = global_profiling_info.num_events
-                            + (global_profiling_info.has_inst_address ? 1 : 0);
-
+        const auto num_counters = global_profiling_info.num_events;
         long long int counter_values[num_counters];
-        if (global_profiling_info.has_inst_address) {
-            counter_values[num_counters] = reinterpret_cast<std::intptr_t>(address);
-        }
+
         int retval;
         if ((retval = PAPI_read(global_profiling_info.event_set, counter_values)) == PAPI_OK) {
-            global_profiling_info.pep_writer.WriteMeasurements(counter_values, num_counters);
+            if (global_profiling_info.has_inst_address) {
+                global_profiling_info.pep_writer.WriteObservation(counter_values, num_counters, reinterpret_cast<peptalk::io::inst_address_t>(address));
+            } else {
+                global_profiling_info.pep_writer.WriteObservation(counter_values, num_counters);
+            }
         } else {
             cerr << "Failed at reading overflow values" << PAPI_strerror(retval) << std::endl;
         }
@@ -73,7 +71,7 @@ namespace peptalk::profiling {
             return false;
         }
 
-        global_profiling_info.event_codes = new int[global_profiling_info.num_events];
+        global_profiling_info.event_codes.resize(global_profiling_info.num_events);
         for (size_t idx = 0; idx < global_profiling_info.num_events; ++idx) {
             auto event_name = global_profiling_info.event_names[idx];
             if ((PAPI_event_name_to_code(event_name.c_str(), &global_profiling_info.event_codes[idx])) != PAPI_OK) {
@@ -81,23 +79,19 @@ namespace peptalk::profiling {
                 return false;
             }
         }
-        if ((retval = PAPI_add_events(global_profiling_info.event_set, global_profiling_info.event_codes, global_profiling_info.num_events)) !=
+        if ((retval = PAPI_add_events(global_profiling_info.event_set, global_profiling_info.event_codes.data(), global_profiling_info.num_events)) !=
             PAPI_OK) {
             OnErrorOrWarning("Failed to add performance events to the event set", PAPI_strerror(retval));
             return false;
         }
 
-        global_profiling_info.pep_writer.Open(profiling_result_file);
+        global_profiling_info.pep_writer.Open(profiling_result_file, has_inst_address);
         return true;
     }
 
     bool Start(const std::string &trace_header,
                const std::function<void(const std::string &, const std::string &)> &OnErrorOrWarning) {
-        auto performance_event_names = global_profiling_info.event_names;
-        if (global_profiling_info.has_inst_address) {
-            performance_event_names.emplace_back(INSTRUCTION_ADDRESS_NAME);
-        }
-        global_profiling_info.pep_writer.StartProfile(trace_header, performance_event_names);
+        global_profiling_info.pep_writer.StartProfile(trace_header, global_profiling_info.event_names);
 
         int retval;
         if ((retval = PAPI_overflow(global_profiling_info.event_set, global_profiling_info.event_codes[0],
@@ -121,7 +115,13 @@ namespace peptalk::profiling {
             return false;
         }
         // Read counters for the very last time
-        global_profiling_info.pep_writer.WriteMeasurements(counter_values, global_profiling_info.num_events);
+        if (global_profiling_info.has_inst_address) {
+            // We are out of the sampling mechanism; thus, the address of a sampled instruction is unknown
+            // However, the PEP format still requires some value
+            global_profiling_info.pep_writer.WriteObservation(counter_values, global_profiling_info.num_events, 0);
+        } else {
+            global_profiling_info.pep_writer.WriteObservation(counter_values, global_profiling_info.num_events);
+        }
 
         if ((retval = PAPI_reset(global_profiling_info.event_set)) != PAPI_OK) {
             OnErrorOrWarning("Failed to reset the counters", PAPI_strerror(retval));
@@ -149,7 +149,6 @@ namespace peptalk::profiling {
         }
         PAPI_shutdown();
         global_profiling_info.pep_writer.Close();
-        delete[] global_profiling_info.event_codes;
         return true;
     }
 
