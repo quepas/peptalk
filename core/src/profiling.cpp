@@ -20,7 +20,7 @@ namespace peptalk::profiling {
     struct ProfilingInfo {
         int event_set = PAPI_NULL;
         std::vector<std::string> event_names;
-        int* event_codes;
+        std::vector<int> event_codes;
         int overflow_threshold;
         int num_events = 0;
         bool has_inst_address = false;
@@ -71,7 +71,7 @@ namespace peptalk::profiling {
             return false;
         }
 
-        global_profiling_info.event_codes = new int[global_profiling_info.num_events];
+        global_profiling_info.event_codes.resize(global_profiling_info.num_events);
         for (size_t idx = 0; idx < global_profiling_info.num_events; ++idx) {
             auto event_name = global_profiling_info.event_names[idx];
             if ((PAPI_event_name_to_code(event_name.c_str(), &global_profiling_info.event_codes[idx])) != PAPI_OK) {
@@ -79,7 +79,7 @@ namespace peptalk::profiling {
                 return false;
             }
         }
-        if ((retval = PAPI_add_events(global_profiling_info.event_set, global_profiling_info.event_codes, global_profiling_info.num_events)) !=
+        if ((retval = PAPI_add_events(global_profiling_info.event_set, global_profiling_info.event_codes.data(), global_profiling_info.num_events)) !=
             PAPI_OK) {
             OnErrorOrWarning("Failed to add performance events to the event set", PAPI_strerror(retval));
             return false;
@@ -149,7 +149,6 @@ namespace peptalk::profiling {
         }
         PAPI_shutdown();
         global_profiling_info.pep_writer.Close();
-        delete[] global_profiling_info.event_codes;
         return true;
     }
 
