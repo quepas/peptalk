@@ -4,7 +4,7 @@
   "description": "pep-talk for the Node.js",
   "private": true,
   "dependencies": {
-    "cmake-js": "^7.2.1",
+    "cmake-js": "^8.0.0",
     "node-addon-api": "^2.0.0"
   },
   "scripts": {
